@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { assets, facilityIcons, roomCommonData } from "../assets/assets";
 import StarRating from "../components/StarRating";
 import { useAppContext } from "../context/AppContext";
@@ -7,12 +7,20 @@ import toast from "react-hot-toast";
 
 const RoomDetails = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+
+  const [checkInDate, setCheckInDate] = useState(
+    searchParams.get("checkIn") || null,
+  );
+  const [checkOutDate, setCheckOutDate] = useState(
+    searchParams.get("checkOut") || null,
+  );
   const { rooms, getToken, axios, navigate } = useAppContext();
   const [room, setRoom] = useState(null);
   const [mainImage, setMainImage] = useState(null);
 
-  const [checkInDate, setCheckInDate] = useState(null);
-  const [checkOutDate, setCheckOutDate] = useState(null);
+  // const [checkInDate, setCheckInDate] = useState(null);
+  // const [checkOutDate, setCheckOutDate] = useState(null);
   const [guests, setGuests] = useState(1);
   const [isAvailable, setIsAvailable] = useState(false);
 
@@ -194,6 +202,7 @@ md:items-center gap-4 md:gap-10 text-gray-500"
                 Check-In
               </label>
               <input
+                value={checkInDate || ""}
                 onChange={(e) => setCheckInDate(e.target.value)}
                 min={new Date().toISOString().split("T")[0]}
                 type="date"
@@ -210,6 +219,7 @@ outline-none"
                 Check-Out
               </label>
               <input
+                value={checkOutDate || ""}
                 onChange={(e) => setCheckOutDate(e.target.value)}
                 min={checkInDate}
                 disabled={!checkInDate}

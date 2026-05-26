@@ -40,6 +40,8 @@ const AllRooms = () => {
     priceRange: [],
   });
   const [selectedSort, setSelectedSort] = useState("");
+  const checkIn = searchParams.get("checkIn");
+  const checkOut = searchParams.get("checkOut");
 
   const roomTypes = ["Single Bed", "Double Bed", "Luxury Room", "Family Suite"];
 
@@ -55,6 +57,20 @@ const AllRooms = () => {
     "Price High to Low",
     "Newest First",
   ];
+
+  const getDynamicPrice = (basePrice) => {
+    if (!checkIn || !checkOut) return basePrice;
+    const start = new Date(checkIn);
+    const end = new Date(checkOut);
+    let maxMultiplier = 1;
+    const current = new Date(start);
+    while (current < end) {
+      const day = current.getDay();
+      if (day === 0 || day === 6) maxMultiplier = Math.max(maxMultiplier, 1.25);
+      current.setDate(current.getDate() + 1);
+    }
+    return Math.round(basePrice * maxMultiplier);
+  };
 
   // Handle changes for filters and sorting
   const handleFilterChange = (checked, value, type) => {
@@ -162,7 +178,9 @@ max-w-174"
           >
             <img
               onClick={() => {
-                navigate(`/rooms/${room._id}`);
+                navigate(
+                  `/rooms/${room._id}?checkIn=${checkIn || ""}&checkOut=${checkOut || ""}`,
+                );
                 scrollTo(0, 0);
               }}
               src={room.images[0]}
@@ -211,7 +229,7 @@ text-sm"
               </div>
               {/* Room Price per Night */}
               <p className="text-xl font-medium text-gray-700">
-                ${room.pricePerNight} /night
+                ${getDynamicPrice(room.pricePerNight)} /night
               </p>{" "}
               I
             </div>

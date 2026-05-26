@@ -5,10 +5,15 @@ import { useAppContext } from "../context/AppContext";
 const Hero = () => {
   const { navigate, getToken, axios, setSearchedCities } = useAppContext();
   const [destination, setDestination] = useState("");
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [guests, setGuests] = useState(1);
 
   const onSearch = async (e) => {
     e.preventDefault();
-    navigate(`/rooms?destination=${destination}`);
+    navigate(
+      `/rooms?destination=${destination}&checkIn=${checkIn}&checkOut=${checkOut}`,
+    );
 
     // call api to save recent searched city
     await axios.post(
@@ -74,6 +79,9 @@ const Hero = () => {
           <input
             id="checkIn"
             type="date"
+            value={checkIn}
+            onChange={(e) => setCheckIn(e.target.value)}
+            min={new Date().toISOString().split("T")[0]}
             className=" rounded border border-gray-200 px-3 py-1.5 mt-1.5 text-sm outline-none"
           />
         </div>
@@ -86,6 +94,10 @@ const Hero = () => {
           <input
             id="checkOut"
             type="date"
+            value={checkOut}
+            onChange={(e) => setCheckOut(e.target.value)}
+            min={checkIn}
+            disabled={!checkIn}
             className=" rounded border border-gray-200 px-3 py-1.5 mt-1.5 text-sm outline-none"
           />
         </div>
