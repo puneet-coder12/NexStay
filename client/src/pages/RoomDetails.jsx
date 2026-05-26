@@ -54,7 +54,8 @@ const RoomDetails = () => {
       if (!isAvailable) {
         return checkAvailability();
       } else {
-        const { data } = await axios.post("/api/bookings/book",
+        const { data } = await axios.post(
+          "/api/bookings/book",
           {
             room: id,
             checkInDate,
@@ -75,6 +76,21 @@ const RoomDetails = () => {
     } catch (error) {
       toast.error(error.message);
     }
+  };
+
+  const getDynamicPrice = (basePrice, checkIn, checkOut) => {
+    if (!checkIn || !checkOut) return basePrice;
+    const start = new Date(checkIn);
+    const end = new Date(checkOut);
+    let maxMultiplier = 1;
+    const current = new Date(start);
+    while (current < end) {
+      const day = current.getDay();
+      const isWeekend = day === 0 || day === 6;
+      if (isWeekend) maxMultiplier = Math.max(maxMultiplier, 1.25);
+      current.setDate(current.getDate() + 1);
+    }
+    return Math.round(basePrice * maxMultiplier);
   };
 
   useEffect(() => {
@@ -156,11 +172,15 @@ rounded-full"
             </div>
           </div>
           {/* Room Price */}
-          <p className="text-2xl font-bold">${room.pricePerNight}/night</p>
+          <p className="text-2xl font-bold">
+            ${getDynamicPrice(room.pricePerNight, checkInDate, checkOutDate)}
+            /night
+          </p>
         </div>
 
         {/* CheckIn Checkout Form */}
-        <form onSubmit={onSubmitHandler}
+        <form
+          onSubmit={onSubmitHandler}
           className="flex flex-col md:flex-row items-start md:items-center
 justify-between bg-white shadow-[0px 0px 20px rgba(0,0,0,0.15)] p-6 rounded-x1
 mx-auto mt-16 max-w-6x1"

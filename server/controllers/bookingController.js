@@ -1,6 +1,7 @@
 import Booking from "../models/Booking.js";
 import Room from "../models/Room.js";
 import Hotel from "../models/Hotel.js";
+import { getPriceForStay } from "../utils/dynamicPricing.js";
 import transporter from "../configs/nodemailer.js";
 // Function to Check Availablity of Room
 const checkAvailability = async ({ checkInDate, checkOutDate, room }) => {
@@ -52,15 +53,15 @@ export const createBooking = async (req, res) => {
 
     // Get totalPrice from Room
     const roomData = await Room.findById(room).populate("hotel");
-    let totalPrice = roomData.pricePerNight;
-
-    // Calculate totalPrice based on nights
     const checkIn = new Date(checkInDate);
     const checkOut = new Date(checkOutDate);
-    const timeDiff = checkOut.getTime() - checkIn.getTime();
-    const nights = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-    totalPrice *= nights;
+    const nights = Math.ceil((checkOut - checkIn) / (1000 * 3600 * 24));
+    const pricePerNight = getPriceForStay(
+      roomData.pricePerNight,
+      checkInDate,
+      checkOutDate,
+    );
+    const totalPrice = pricePerNight * nights;
     const booking = await Booking.create({
       user,
       room,
@@ -100,8 +101,11 @@ export const createBooking = async (req, res) => {
 
 `,
     };
-    await transporter.sendMail(mailOptions);
-
+    try {
+      await transporter.sendMail(mailOptions);
+    } catch (mailError) {
+      console.log("Mail error:", mailError.message); // don't crash if mail fails
+    }
     res.json({ success: true, message: "Booking created successfully" });
   } catch (error) {
     console.log(error);
@@ -125,12 +129,12 @@ export const getUserBookings = async (req, res) => {
 
 export const getHotelBookings = async (req, res) => {
   try {
-    const hotel = await Hotel.findOne({ owner: req.auth.userId });
+    const hotel = await Hotel.findOne({ owner: req.user._id });
     if (!hotel) {
       return res.json({ success: false, message: "No Hotel found" });
     }
     const bookings = await Booking.find({ hotel: hotel._id })
-      .populate("room hoteluser")
+      .populate("room hotel user")
       .sort({ createdAt: -1 });
     // Total Bookings
     const totalBookings = bookings.length;
