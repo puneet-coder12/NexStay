@@ -193,7 +193,9 @@ max-w-174"
               <p className="text-gray-500">{room.hotel.city}</p>
               <p
                 onClick={() => {
-                  navigate(`/rooms/${room._id}`);
+                  navigate(
+                    `/rooms/${room._id}?checkIn=${checkIn || ""}&checkOut=${checkOut || ""}`,
+                  );
                   scrollTo(0, 0);
                 }}
                 className="text-gray-800 text-3xl font-playfair cursor-pointer"
