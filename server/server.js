@@ -15,7 +15,17 @@ connectDB();
 connectCloudinary();
 
 
-app.use(cors()); // Enable Cross-Origin Resource Sharing
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://nex-stay-git-main-puneets-projects-c1645d5b.vercel.app",
+    process.env.FRONTEND_URL  // add this to .env for flexibility
+  ],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+app.options("*", cors()); // handles preflight for all routes
 app.use(express.json());
 app.use(clerkMiddleware());
 
